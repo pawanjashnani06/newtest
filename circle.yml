@@ -3,9 +3,24 @@ machine:
     - docker
     
 dependencies:
-  override:
-    - docker info
+  pre:
+    # Log into Docker Hub
+    - docker login --username=pawanjashnani --password=Btech@2017 --email=pawanjashnani@gmail.com
 
+  override:
+    # Example makefile step. This triggers gulp task runners, installs prerequisites, etc.
+    - make
+
+    # Bake the code and the files generated from `make` into an image
+    - docker build -t gs-spring-boot-docker/gs-spring-boot-docker:latest .
 test:
   override:
-    docker run -p 8080:8080 -t gs-spring-boot-docker/gs-spring-boot-docker
+    # Test the built image
+    - docker-compose -f docker-compose.ci.yml run -T test
+
+deployment:
+  master:
+    branch: master
+    commands:
+      # Push the built image back to Docker Hub
+      - docker push gs-spring-boot-docker/gs-spring-boot-docker:latest
